@@ -11,6 +11,7 @@ from typing import Optional
 
 from sklearn.linear_model import LinearRegression
 from sklearn.cross_decomposition import CCA
+from sklearn.decomposition import PCA
 
 from utils.utils import generate_past_data
 
@@ -207,6 +208,39 @@ class SpatialAveraging:
 
     def transform(self, Y):
         components = Y @ self.weights_
+        components = (
+            components - components.mean(axis=0)
+        ) / components.std(axis=0)
+        return components
+
+    def fit_transform(self, X, Y):
+        self.fit(X, Y)
+        return self.transform(Y)
+
+
+class PricnipalComponents:
+    """
+    Uniform spatial averaging of Y.
+    """
+
+    def __init__(self, n_components=1):
+        self.n_components = n_components
+        return None
+
+    # ------------------------------------------------------------------
+    # Fit
+    # ------------------------------------------------------------------
+
+    def fit(self, X, Y):
+        self.pca = PCA(n_components=self.n_components)
+        self.pca.fit(Y)
+
+    # ------------------------------------------------------------------
+    # Transform
+    # ------------------------------------------------------------------
+
+    def transform(self, Y):
+        components = self.pca.transform(Y)
         components = (
             components - components.mean(axis=0)
         ) / components.std(axis=0)
